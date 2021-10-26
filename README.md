@@ -298,6 +298,21 @@ Next we will see the size of the intersections in a bar diagram
     Dat <- Datos[,c(1,2)]; 
     names(Dat)[1]<- "X";  
     names(Dat)[2]<- "Y"; 
+    
+    g <- graph_from_data_frame(Dat, directed = FALSE)
+
+dg <- decompose.graph(g)
+print(paste("Grafo con",
+      length(degree(g)),
+      "vÃ©rtices",
+      length(E(g)),
+      "aristas y",
+      length(dg),
+      "Componentes conexas"))
+
+
+
+Now we calculate vertices values.
 
     Vertex$DegreeCat <- ifelse(Vertex$Degree < 0.5, "no", "yes")
     Vertex$CentralityCat <- ifelse(Vertex$Centrality < 0.5, "no", "yes")
