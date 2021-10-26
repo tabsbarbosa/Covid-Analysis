@@ -292,14 +292,10 @@ Next we will see the size of the intersections in a bar diagram
 ## Cut Analysis
 
 
-    Datos1 <- read_excel("you_file_location.xlsx")
-    Dat1 <- Datos1; 
-    names(Dat1)[1]<- "X";  
-    names(Dat1)[2]<- "Y"; 
-    g1 <- graph_from_data_frame(Dat1, directed = FALSE)
     
-   
+    g1 <- graph_from_data_frame(Dat, directed = FALSE)
     
+       
     Vertex <- as.data.frame(degree(g1))
     Vertex$Degree <- normalize(as.numeric(Vertex$`degree(g1)`))
     Vertex$`degree(g1)` <- NULL
@@ -322,7 +318,6 @@ Next we will see the size of the intersections in a bar diagram
 
     dg <- decompose.graph(g1)
     g <- dg[[1]]
-    #V(g)$name
     cohesion(g)
     lista = c()
     for ( v in V(g)$name )
@@ -336,3 +331,5 @@ Next we will see the size of the intersections in a bar diagram
     }
     lista
     length(lista)
+
+This reults in 240 nodes.
