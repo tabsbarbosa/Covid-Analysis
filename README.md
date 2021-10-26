@@ -294,19 +294,13 @@ Next we will see the size of the intersections in a bar diagram
 
 ## Cut Analysis
 
+
     Datos1 <- read_excel("you_file_location.xlsx")
     Dat1 <- Datos1; 
     names(Dat1)[1]<- "X";  
     names(Dat1)[2]<- "Y"; 
-    
     g1 <- graph_from_data_frame(Dat1, directed = FALSE)
-    print(paste("Grafo con",
-            length(degree(g1)),
-            "vertices",
-            length(E(g1)),
-            "aristas y",
-            length(decompose.graph(g1)),
-            "Componentes conexas"))
+    
    
     
     Vertex <- as.data.frame(degree(g1))
@@ -317,7 +311,7 @@ Next we will see the size of the intersections in a bar diagram
     Vertex$PageRank <- normalize(page_rank(g1)$vector)
     Vertex$Closeness <- normalize(closeness(g1))
     Vertex$N <- c(1:length(Vertex$Degree))
-    #View(Vertex)
+    
 
     Vertex$DegreeCat <- ifelse(Vertex$Degree < 0.5, "no", "yes")
     Vertex$CentralityCat <- ifelse(Vertex$Centrality < 0.5, "no", "yes")
@@ -331,7 +325,6 @@ Next we will see the size of the intersections in a bar diagram
 
     dg <- decompose.graph(g1)
     g <- dg[[1]]
-    autograph(g)
     #V(g)$name
     cohesion(g)
     lista = c()
@@ -346,45 +339,3 @@ Next we will see the size of the intersections in a bar diagram
     }
     lista
     length(lista)
-
-
-    #Example:
-    autograph(delete_vertices(g, lista[3]))
-    #autograph(g)
-    Nodes <- as.data.frame(V(g)$name)
-    colnames(Nodes) <- "Vertex" 
-    Nodes$Disconnect <- Nodes$Vertex %in% lista #ifelse(Vertex$Degree < 0.5, "no", "yes")
-    table(Nodes$Disconnect)  
-
-
-
-    #Pintar breaker in the graph and in the graphs
-    ggraph(g,'stress') + 
-      geom_edge_link(alpha = 0.1) +
-      geom_node_point(aes(colour= factor(Nodes$Disconnect)))+
-      #   geom_node_label(aes(label = ifelse(V_Original$DegreeCat == "yes", rownames(V_Original), NA )), repel = TRUE)+
-      labs(title = "Colored if disconnect", color = "Disconnect")
-
-    Nodes$Degree <- normalize(degree(g))
-    Nodes$Centrality <- eigen_centrality(g)$vector
-    Nodes$Betweenness <- normalize(betweenness(g, normalized = TRUE ))
-    Nodes$PageRank <- normalize(page_rank(g)$vector)
-    Nodes$Closeness <- normalize(closeness(g))
-
-
-    Nodes <- Nodes[order(Nodes$Degree, decreasing = FALSE), ]
-    Nodes$N <- c(1:nrow(Nodes) )
-    ggplot(Nodes, aes() )  +  geom_point(aes(x = N, y=Degree, color = Disconnect))
-
-    Nodes <- Nodes[order(Nodes$Centrality, decreasing = FALSE), ]
-    Nodes$N <- c(1:nrow(Nodes) )
-    p1 <- ggplot(Nodes, aes() )  +  geom_point(aes(x = Degree, y=Centrality, color = Disconnect))
-    p2 <- ggplot(Nodes, aes() )  +  geom_point(aes(x = Degree, y=Betweenness, color = Disconnect))
-    p3 <- ggplot(Nodes, aes() )  +  geom_point(aes(x = PageRank, y=Closeness, color = Disconnect))
-    p4 <- ggplot(Nodes, aes() )  +  geom_point(aes(x = PageRank, y=Degree, color = Disconnect))
-    multiplot(p1,p2,p3,p4, cols = 2)
-
-    Topological_Values <- Vertex[ row.names(Vertex) %in% lista,]
-    View(Topological_Values)
-    write.csv(Topological_Values, "Topological_Values.csv")
-    table(Topological_Values$Organism)
