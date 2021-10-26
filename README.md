@@ -178,7 +178,7 @@ Next we classify the vertex with values over the 50%, and save a copy of the ori
     Vertex$CentralityCat <- ifelse(Vertex$Centrality < 0.5, "no", "yes")
     Vertex$BetweennessCat <- ifelse(Vertex$Betweenness < 0.5, "no", "yes")
     Vertex$PageRankCat <- ifelse(Vertex$PageRank < 0.5, "no", "yes")
-    Vertex$ClosenessCat <- ifelse(Vertex$Closeness < 0.5, "no", "yes")
+    Vertex$ClosenessCat <- ifelse(Vertex$Closeness < 0.99, "no", "yes")
 
     V_Original <- Vertex
 
