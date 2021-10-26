@@ -74,11 +74,8 @@ Now, that the libraries are loaded, we will define a multiplot function that is 
 Once the multiplot function is defined, we are going to upload the file that has the proteins and the connections, this file is available online in GitHub, which is why we are going to upload it from an URL and not from a saved file, but in case you want to analyze a local file you can uploaded it using a read.csv of read.xlsx command.
 
 
-    url <- 'https://github.com/gcombarGitHub/GrafosFarmacosChile/raw/main/02_output_T1T2T3-interacting-with-T4.csv'
-    library(readr)
-    Dat <- read_csv(url)
-
-
+    
+    Dat <- read_excel("your_file_location.xlsx")
     names(Dat)[1]<- "X";  
     names(Dat)[2]<- "Y"; 
     names(Dat)[3]<- "weight";
