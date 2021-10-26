@@ -294,25 +294,30 @@ Next we will see the size of the intersections in a bar diagram
 
 ## Cut Analysis
 
-    Datos <- read_excel("you_file_location.xlsx")
-    Dat <- Datos[,c(1,2)]; 
-    names(Dat)[1]<- "X";  
-    names(Dat)[2]<- "Y"; 
+    Datos1 <- read_excel("you_file_location.xlsx")
+    Dat1 <- Datos1; 
+    names(Dat1)[1]<- "X";  
+    names(Dat1)[2]<- "Y"; 
     
-    g <- graph_from_data_frame(Dat, directed = FALSE)
-
-dg <- decompose.graph(g)
-print(paste("Grafo con",
-      length(degree(g)),
-      "vÃ©rtices",
-      length(E(g)),
-      "aristas y",
-      length(dg),
-      "Componentes conexas"))
-
-
-
-Now we calculate vertices values.
+    g1 <- graph_from_data_frame(Dat1, directed = FALSE)
+    print(paste("Grafo con",
+            length(degree(g1)),
+            "vertices",
+            length(E(g1)),
+            "aristas y",
+            length(decompose.graph(g1)),
+            "Componentes conexas"))
+   
+    
+    Vertex <- as.data.frame(degree(g1))
+    Vertex$Degree <- normalize(as.numeric(Vertex$`degree(g1)`))
+    Vertex$`degree(g1)` <- NULL
+    Vertex$Centrality <- eigen_centrality(g1)$vector
+    Vertex$Betweenness <- normalize(betweenness(g1, normalized = TRUE ))
+    Vertex$PageRank <- normalize(page_rank(g1)$vector)
+    Vertex$Closeness <- normalize(closeness(g1))
+    Vertex$N <- c(1:length(Vertex$Degree))
+    #View(Vertex)
 
     Vertex$DegreeCat <- ifelse(Vertex$Degree < 0.5, "no", "yes")
     Vertex$CentralityCat <- ifelse(Vertex$Centrality < 0.5, "no", "yes")
@@ -320,80 +325,66 @@ Now we calculate vertices values.
     Vertex$PageRankCat <- ifelse(Vertex$PageRank < 0.5, "no", "yes")
     Vertex$ClosenessCat <- ifelse(Vertex$Closeness < 0.99, "no", "yes")
 
+    Vertex1 <- Vertex
     V_Original <- Vertex
 
-     Vertex <- Vertex[order(Vertex$Degree, decreasing = FALSE), ]
-     Vertex$N <- c(1:nrow(Vertex) )
- 
-     ggplot(Vertex, aes() )  +  geom_point(aes(x = N, y=Degree))
-  
-    Best_Degree <- as.list(as.character(row.names(Vertex[Vertex$DegreeCat == "yes",])))
-    Best_Closeness <- as.list(as.character(row.names(Vertex[Vertex$ClosenessCat == "yes",])))
-    Best_Centrality <- as.list(as.character(row.names(Vertex[Vertex$CentralityCat == "yes",])))
-    Best_Betweenness <- as.list(as.character(row.names(Vertex[Vertex$BetweennessCat == "yes",])))
-    Best_PageRank <- as.list(as.character(row.names(Vertex[Vertex$PageRankCat == "yes",])))
 
-    library(ggvenn)
-    x <- list(
-      Closeness = Best_Closeness, 
-      Degree = Best_Degree,
-      Centrality = Best_Centrality,
-      Betweenness = Best_Betweenness,
-      PageRank = Best_PageRank
-    )
-    library(VennDiagram)
-    display_venn <- function(x, ...){  
-      grid.newpage()
-      venn_object <- venn.diagram(x, filename = NULL, ...)
-      grid.draw(venn_object)
+    dg <- decompose.graph(g1)
+    g <- dg[[1]]
+    autograph(g)
+    #V(g)$name
+    cohesion(g)
+    lista = c()
+    for ( v in V(g)$name )
+    {
+      g1_new <- delete_vertices(g, v)
+      if ( length(decompose.graph(g1_new)) > 1 ){
+        print( paste(cohesion(g1_new), length(decompose.graph(g1_new)),v) )
+        lista <- append(lista, v)
+      }
+      #print(v)
     }
-    display_venn(
-      x,
-      fill = c("#999999", "#E69F00", "#56B4E9", "#469F00", "#E09E75"),
-      # Set names
-      cat.cex = 1,
-      cat.fontface = "bold",
-      cat.default.pos = "outer",
-      cat.dist = c(0.05, 0.08, 0.08, 0.06, 0.08)
-    )
+    lista
+    length(lista)
 
-    library(gplots)
-    isect <- attr(venn(x, intersection=TRUE, show.plot=F), "intersection")
 
-    library(UpSetR)
-    input <- c(
-      Centrality = length(isect$Centrality),
-      #  Degree =length(isect$Degree),
-      PageRank = length(isect$PageRank),
-      Closeness =length(isect$Closeness), 
-      Betweenness =length(isect$Betweenness),
-      # "Degree&Centrality" =  length(isect$`Degree:Centrality`),
-      "Degree&PageRank" =  length(isect$`Degree:PageRank`),
-      "Degree&Closeness" =  length(isect$`Closeness:Degree`),
-      "Degree&Betweenness" =  length(isect$`Degree:Betweenness`),
-      "Centrality&PageRank" =  length(isect$`PageRank:Centrality`),
-      "Centrality&Closeness" =  length(isect$`Closeness:Centrality`),
-      "Centrality&Betweenness" =  length(isect$`Betweenness:Centrality`),
-      "PageRank&Closeness" =  length(isect$`Closeness:PageRank`),
-      "PageRank&Betweenness" =  length(isect$`Betweenness:PageRank`),
-      "Betweenness&Closeness" =  length(isect$`Closeness:Betweenness`),
-      "Degree&Centrality&PageRank" =  length(isect$`Degree:Centrality:PageRank`),
-      #"Degree&Centrality&Closeness" =  length(isect$`Closeness:Degree:Centrality`),
-      "Degree&Centrality&Betweenness" =  length(isect$`Degree:Centrality:Betweenness`),
-      "Degree&PageRank&Closeness" =  length(isect$`Closeness:Degree:PageRank`),
-      "Degree&PageRank&Betweenness" =  length(isect$`Degree:Betweenness:PageRank`),
-      "Degree&Closeness&Betweenness" =  length(isect$`Degree:Closeness:Betweenness`),
-      "Centrality&PageRank&Closeness" =  length(isect$`PageRank:Centrality:Closeness`),
-      "Centrality&PageRank&Betweenness" =  length(isect$`PageRank:Centrality:Betweenness`),
-      "Centrality&Closeness&Betweenness" =  length(isect$`Closeness:Centrality:Betweenness`),
-      "PageRank&Closeness&Betweenness" =  length(isect$`Closeness:Betweenness:PageRank`),
-      "Degree&Centrality&PageRank&Closeness" =  length(isect$`Closeness:Degree:Centrality:PageRank`), 
-      "Degree&Centrality&PageRank&Betweenness" =  length(isect$`Degree:Centrality:Betweenness:PageRank`),
-      "Centrality&PageRank&Betweenness&Closeness" =  length(isect$`Centrality:PageRank:Betweenness:Closeness`),
-      "Degree&PageRank&Betweenness&Closeness" =  length(isect$`Closeness:Degree:Betweenness:PageRank`),
-      #  "Degree&Centrality&Betweenness&Closeness" =  length(isect$`Closeness:Degree:Centrality:Betweenness`),
-      "Degree&Centrality&PageRank&Betweenness&Closeness" =  length(isect$`Closeness:Degree:Centrality:Betweenness:PageRank`)
-    )
-    upset(fromExpression(input))
+    #Example:
+    autograph(delete_vertices(g, lista[3]))
+    #autograph(g)
+    Nodes <- as.data.frame(V(g)$name)
+    colnames(Nodes) <- "Vertex" 
+    Nodes$Disconnect <- Nodes$Vertex %in% lista #ifelse(Vertex$Degree < 0.5, "no", "yes")
+    table(Nodes$Disconnect)  
 
-    print(isect)
+
+
+    #Pintar breaker in the graph and in the graphs
+    ggraph(g,'stress') + 
+      geom_edge_link(alpha = 0.1) +
+      geom_node_point(aes(colour= factor(Nodes$Disconnect)))+
+      #   geom_node_label(aes(label = ifelse(V_Original$DegreeCat == "yes", rownames(V_Original), NA )), repel = TRUE)+
+      labs(title = "Colored if disconnect", color = "Disconnect")
+
+    Nodes$Degree <- normalize(degree(g))
+    Nodes$Centrality <- eigen_centrality(g)$vector
+    Nodes$Betweenness <- normalize(betweenness(g, normalized = TRUE ))
+    Nodes$PageRank <- normalize(page_rank(g)$vector)
+    Nodes$Closeness <- normalize(closeness(g))
+
+
+    Nodes <- Nodes[order(Nodes$Degree, decreasing = FALSE), ]
+    Nodes$N <- c(1:nrow(Nodes) )
+    ggplot(Nodes, aes() )  +  geom_point(aes(x = N, y=Degree, color = Disconnect))
+
+    Nodes <- Nodes[order(Nodes$Centrality, decreasing = FALSE), ]
+    Nodes$N <- c(1:nrow(Nodes) )
+    p1 <- ggplot(Nodes, aes() )  +  geom_point(aes(x = Degree, y=Centrality, color = Disconnect))
+    p2 <- ggplot(Nodes, aes() )  +  geom_point(aes(x = Degree, y=Betweenness, color = Disconnect))
+    p3 <- ggplot(Nodes, aes() )  +  geom_point(aes(x = PageRank, y=Closeness, color = Disconnect))
+    p4 <- ggplot(Nodes, aes() )  +  geom_point(aes(x = PageRank, y=Degree, color = Disconnect))
+    multiplot(p1,p2,p3,p4, cols = 2)
+
+    Topological_Values <- Vertex[ row.names(Vertex) %in% lista,]
+    View(Topological_Values)
+    write.csv(Topological_Values, "Topological_Values.csv")
+    table(Topological_Values$Organism)
