@@ -1,9 +1,11 @@
 # Covid-Analysis
 # Graph Theory on Proteins
-In this tutorial, we are going to learn how to compute some topological indices that will help us understand the "importancy" of each node in a protein-protein or drug-protein interaction network in terms of its connections.
+In this tutorial, we are going to learn how to compute some topological indices that will help us understand the "importancy" of each node in a protein-protein or drug-protein interaction network in terms of its connections. We are also going to conduct a cut analysis, in order to see which nodes on a network generate a desconexion of components when eliminated form the network.
 
 ## Requirements
 + R v4.1.1 or more recent.
+
+## Topological Analysis
 
 The first step is installing in R the packages that are needed as well as loading their respective libraries. In order to do this, you can copy and paste the following code in R and run it.
 
@@ -289,3 +291,94 @@ Next we will see the size of the intersections in a bar diagram
 
 
 <img src=".\media\descarga (3).png" style="width:400px;" />
+
+## Cut Analysis
+
+    Datos <- read_excel("you_file_location.xlsx")
+    Dat <- Datos[,c(1,2)]; 
+    names(Dat)[1]<- "X";  
+    names(Dat)[2]<- "Y"; 
+
+    Vertex$DegreeCat <- ifelse(Vertex$Degree < 0.5, "no", "yes")
+    Vertex$CentralityCat <- ifelse(Vertex$Centrality < 0.5, "no", "yes")
+    Vertex$BetweennessCat <- ifelse(Vertex$Betweenness < 0.5, "no", "yes")
+    Vertex$PageRankCat <- ifelse(Vertex$PageRank < 0.5, "no", "yes")
+    Vertex$ClosenessCat <- ifelse(Vertex$Closeness < 0.99, "no", "yes")
+
+    V_Original <- Vertex
+
+     Vertex <- Vertex[order(Vertex$Degree, decreasing = FALSE), ]
+     Vertex$N <- c(1:nrow(Vertex) )
+ 
+     ggplot(Vertex, aes() )  +  geom_point(aes(x = N, y=Degree))
+  
+    Best_Degree <- as.list(as.character(row.names(Vertex[Vertex$DegreeCat == "yes",])))
+    Best_Closeness <- as.list(as.character(row.names(Vertex[Vertex$ClosenessCat == "yes",])))
+    Best_Centrality <- as.list(as.character(row.names(Vertex[Vertex$CentralityCat == "yes",])))
+    Best_Betweenness <- as.list(as.character(row.names(Vertex[Vertex$BetweennessCat == "yes",])))
+    Best_PageRank <- as.list(as.character(row.names(Vertex[Vertex$PageRankCat == "yes",])))
+
+    library(ggvenn)
+    x <- list(
+      Closeness = Best_Closeness, 
+      Degree = Best_Degree,
+      Centrality = Best_Centrality,
+      Betweenness = Best_Betweenness,
+      PageRank = Best_PageRank
+    )
+    library(VennDiagram)
+    display_venn <- function(x, ...){  
+      grid.newpage()
+      venn_object <- venn.diagram(x, filename = NULL, ...)
+      grid.draw(venn_object)
+    }
+    display_venn(
+      x,
+      fill = c("#999999", "#E69F00", "#56B4E9", "#469F00", "#E09E75"),
+      # Set names
+      cat.cex = 1,
+      cat.fontface = "bold",
+      cat.default.pos = "outer",
+      cat.dist = c(0.05, 0.08, 0.08, 0.06, 0.08)
+    )
+
+    library(gplots)
+    isect <- attr(venn(x, intersection=TRUE, show.plot=F), "intersection")
+
+    library(UpSetR)
+    input <- c(
+      Centrality = length(isect$Centrality),
+      #  Degree =length(isect$Degree),
+      PageRank = length(isect$PageRank),
+      Closeness =length(isect$Closeness), 
+      Betweenness =length(isect$Betweenness),
+      # "Degree&Centrality" =  length(isect$`Degree:Centrality`),
+      "Degree&PageRank" =  length(isect$`Degree:PageRank`),
+      "Degree&Closeness" =  length(isect$`Closeness:Degree`),
+      "Degree&Betweenness" =  length(isect$`Degree:Betweenness`),
+      "Centrality&PageRank" =  length(isect$`PageRank:Centrality`),
+      "Centrality&Closeness" =  length(isect$`Closeness:Centrality`),
+      "Centrality&Betweenness" =  length(isect$`Betweenness:Centrality`),
+      "PageRank&Closeness" =  length(isect$`Closeness:PageRank`),
+      "PageRank&Betweenness" =  length(isect$`Betweenness:PageRank`),
+      "Betweenness&Closeness" =  length(isect$`Closeness:Betweenness`),
+      "Degree&Centrality&PageRank" =  length(isect$`Degree:Centrality:PageRank`),
+      #"Degree&Centrality&Closeness" =  length(isect$`Closeness:Degree:Centrality`),
+      "Degree&Centrality&Betweenness" =  length(isect$`Degree:Centrality:Betweenness`),
+      "Degree&PageRank&Closeness" =  length(isect$`Closeness:Degree:PageRank`),
+      "Degree&PageRank&Betweenness" =  length(isect$`Degree:Betweenness:PageRank`),
+      "Degree&Closeness&Betweenness" =  length(isect$`Degree:Closeness:Betweenness`),
+      "Centrality&PageRank&Closeness" =  length(isect$`PageRank:Centrality:Closeness`),
+      "Centrality&PageRank&Betweenness" =  length(isect$`PageRank:Centrality:Betweenness`),
+      "Centrality&Closeness&Betweenness" =  length(isect$`Closeness:Centrality:Betweenness`),
+      "PageRank&Closeness&Betweenness" =  length(isect$`Closeness:Betweenness:PageRank`),
+      "Degree&Centrality&PageRank&Closeness" =  length(isect$`Closeness:Degree:Centrality:PageRank`), 
+      "Degree&Centrality&PageRank&Betweenness" =  length(isect$`Degree:Centrality:Betweenness:PageRank`),
+      "Centrality&PageRank&Betweenness&Closeness" =  length(isect$`Centrality:PageRank:Betweenness:Closeness`),
+      "Degree&PageRank&Betweenness&Closeness" =  length(isect$`Closeness:Degree:Betweenness:PageRank`),
+      #  "Degree&Centrality&Betweenness&Closeness" =  length(isect$`Closeness:Degree:Centrality:Betweenness`),
+      "Degree&Centrality&PageRank&Betweenness&Closeness" =  length(isect$`Closeness:Degree:Centrality:Betweenness:PageRank`)
+    )
+    upset(fromExpression(input))
+
+    print(isect)
